@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -40,5 +41,15 @@ public class UnitService {
         return repository.findAll().stream().map(
                 mapper :: toResponse
         ).toList();
+    }
+
+    public UnitDtoResponse getById(UUID id){
+        Unit unit = repository.findById(id).orElseThrow(RuntimeException::new);
+
+        return mapper.toResponse(unit);
+    }
+
+    public void deleteById(UUID id){
+        repository.deleteById(id);
     }
 }
