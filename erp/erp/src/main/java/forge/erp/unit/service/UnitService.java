@@ -5,6 +5,7 @@ import forge.erp.unit.DTO.UnitDtoResponse;
 import forge.erp.unit.mapper.UnitMapper;
 import forge.erp.unit.model.Unit;
 import forge.erp.unit.repository.UnitRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -52,4 +53,20 @@ public class UnitService {
     public void deleteById(UUID id){
         repository.deleteById(id);
     }
+
+    @Transactional
+    public void turnOff(UUID id){
+        Unit unit = repository.findById(id).orElseThrow(RuntimeException::new);
+        unit.setActive(false);
+
+    }
+
+    @Transactional
+    public void turnOn(UUID id){
+        Unit unit = repository.findById(id).orElseThrow(RuntimeException::new);
+        unit.setActive(true);
+
+    }
+
+
 }
