@@ -28,7 +28,7 @@ jobs:
           cache: maven
 
       - name: Build and test
-        working-directory: ./erp
+        working-directory: ./erp/erp
         run: ./mvnw -B clean verify
 
       - name: Update dependency graph
