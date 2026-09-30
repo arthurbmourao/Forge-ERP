@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UnitConversionMapper {
 
-    public UnitConversionResponse unitToConversionResponse(UnitConversion unitConversion){
+    public UnitConversionResponse toResponse(UnitConversion unitConversion){
         return new UnitConversionResponse(
                 unitConversion.getId(),
                 unitConversion.getFromUnit(),
@@ -20,7 +20,7 @@ public class UnitConversionMapper {
         );
     }
 
-    public UnitConversion unitToEntity (UnitConversionRequest unitConversionRequest){
+    public UnitConversion toEntity (UnitConversionRequest unitConversionRequest){
         return new UnitConversion(
                 unitConversionRequest.fromUnit(),
                 unitConversionRequest.toUnit(),
