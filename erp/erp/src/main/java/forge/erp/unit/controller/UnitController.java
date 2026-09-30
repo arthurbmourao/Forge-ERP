@@ -1,7 +1,7 @@
 package forge.erp.unit.controller;
 
-import forge.erp.unit.DTO.UnitDtoRequest;
-import forge.erp.unit.DTO.UnitDtoResponse;
+import forge.erp.unit.dto.UnitDtoRequest;
+import forge.erp.unit.dto.UnitDtoResponse;
 import forge.erp.unit.service.UnitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
