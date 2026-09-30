@@ -1,4 +1,4 @@
-package forge.erp.unit.DTO;
+package forge.erp.unit.dto;
 
 import forge.erp.unit.enums.UnitType;
 import jakarta.validation.constraints.NotBlank;
