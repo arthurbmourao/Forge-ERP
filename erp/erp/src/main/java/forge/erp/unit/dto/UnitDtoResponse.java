@@ -1,8 +1,6 @@
-package forge.erp.unit.DTO;
+package forge.erp.unit.dto;
 
 import forge.erp.unit.enums.UnitType;
-import forge.erp.unit.model.Unit;
-import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

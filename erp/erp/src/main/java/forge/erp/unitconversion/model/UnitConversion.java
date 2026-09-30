@@ -2,6 +2,7 @@ package forge.erp.unitconversion.model;
 
 import forge.erp.unit.model.Unit;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,5 +31,8 @@ public class UnitConversion {
 
     private boolean active;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public UnitConversion(@NotNull Unit unit, @NotNull Unit unit1, @NotNull Integer factor, @NotNull boolean active) {
+    }
 }

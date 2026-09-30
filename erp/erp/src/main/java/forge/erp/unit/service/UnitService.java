@@ -1,7 +1,7 @@
 package forge.erp.unit.service;
 
-import forge.erp.unit.DTO.UnitDtoRequest;
-import forge.erp.unit.DTO.UnitDtoResponse;
+import forge.erp.unit.dto.UnitDtoRequest;
+import forge.erp.unit.dto.UnitDtoResponse;
 import forge.erp.unit.mapper.UnitMapper;
 import forge.erp.unit.model.Unit;
 import forge.erp.unit.repository.UnitRepository;
