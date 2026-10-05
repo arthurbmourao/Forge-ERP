@@ -45,7 +45,7 @@ public class UnitService {
     }
 
     public UnitDtoResponse getById(UUID id){
-        Unit unit = repository.findById(id).orElseThrow();
+        Unit unit = repository.findById(id).orElseThrow(RuntimeException::new);
 
         return mapper.toResponse(unit);
     }
@@ -56,14 +56,14 @@ public class UnitService {
 
     @Transactional
     public void turnOff(UUID id){
-        Unit unit = repository.findById(id).orElseThrow();
+        Unit unit = repository.findById(id).orElseThrow(RuntimeException::new);
         unit.setActive(false);
 
     }
 
     @Transactional
     public void turnOn(UUID id){
-        Unit unit = repository.findById(id).orElseThrow();
+        Unit unit = repository.findById(id).orElseThrow(RuntimeException::new);
         unit.setActive(true);
 
     }

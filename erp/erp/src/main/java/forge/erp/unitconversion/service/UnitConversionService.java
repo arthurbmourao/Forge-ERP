@@ -1,5 +1,6 @@
 package forge.erp.unitconversion.service;
 
+import forge.erp.unit.model.Unit;
 import forge.erp.unitconversion.dto.UnitConversionRequest;
 import forge.erp.unitconversion.dto.UnitConversionResponse;
 import forge.erp.unitconversion.mapper.UnitConversionMapper;
@@ -9,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +36,7 @@ public class UnitConversionService {
     }
 
     public UnitConversionResponse findById (UUID id){
-        UnitConversion unitConversion = repository.findById(id).orElseThrow();
+        UnitConversion unitConversion = repository.findById(id).orElseThrow(RuntimeException::new);
 
         UnitConversionResponse unitConversionResponse = mapper.toResponse(unitConversion);
 
@@ -56,14 +58,14 @@ public class UnitConversionService {
 
     @Transactional
     public void turnOn(UUID id){
-        UnitConversion unitConversion = repository.findById(id).orElseThrow();
+        UnitConversion unitConversion = repository.findById(id).orElseThrow(RuntimeException::new);
 
         unitConversion.setActive(true);
     }
 
     @Transactional
     public void turnOff(UUID id){
-        UnitConversion unitConversion = repository.findById(id).orElseThrow();
+        UnitConversion unitConversion = repository.findById(id).orElseThrow(RuntimeException::new);
 
         unitConversion.setActive(false);
     }

@@ -38,10 +38,6 @@ public class UnitConversion {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public UnitConversion(@NotNull Unit fromUnit, @NotNull Unit toUnit, @NotNull BigDecimal factor, boolean active) {
-        this.fromUnit = fromUnit;
-        this.toUnit = toUnit;
-        this.factor = factor;
-        this.active = active;
+    public UnitConversion(@NotNull Unit unit, @NotNull Unit unit1, @NotNull BigDecimal factor, @NotNull boolean active) {
     }
 }

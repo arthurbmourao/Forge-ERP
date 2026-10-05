@@ -11,8 +11,8 @@ public class CategoryMapper {
     public CategoryResponse toResponse(Category category){
         return new CategoryResponse(
                 category.getId(),
-                category.getCode(),
                 category.getName(),
+                category.getCode(),
                 category.getDescription(),
                 category.getActive(),
                 category.getCreatedAt(),
@@ -23,7 +23,7 @@ public class CategoryMapper {
     public Category toEntity(CategoryRequest categoryRequest){
 
         return new Category(
-                categoryRequest.code(),
+                categoryRequest.name(),
                 categoryRequest.name(),
                 categoryRequest.description()
         );

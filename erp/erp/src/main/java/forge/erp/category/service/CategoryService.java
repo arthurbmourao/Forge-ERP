@@ -7,8 +7,8 @@ import forge.erp.category.model.Category;
 import forge.erp.category.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +28,7 @@ public class CategoryService {
     }
 
     public CategoryResponse findById (UUID id){
-        Category category = repository.findById(id).orElseThrow();
+        Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
         return mapper.toResponse(category);
 
@@ -40,14 +40,13 @@ public class CategoryService {
         return categories.stream().map(mapper::toResponse).toList();
     }
 
-    @Transactional
     public CategoryResponse update(UUID id, CategoryRequest categoryRequest){
         Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
-        category.setName(categoryRequest.name());
-        category.setCode(categoryRequest.code());
-        category.setDescription(categoryRequest.description());
-        category.setUpdatedAt(java.time.LocalDateTime.now());
+        category.setName(category.getName());
+        category.setCode(category.getCode());
+        category.setDescription(category.getDescription());
+        category.setActive(category.getActive());
 
         return mapper.toResponse(category);
 
@@ -57,16 +56,14 @@ public class CategoryService {
         repository.deleteById(id);
     }
 
-    @Transactional
     public void turnOn(UUID id){
-        Category category = repository.findById(id).orElseThrow();
+        Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
         category.setActive(true);
     }
 
-    @Transactional
     public void turnOff(UUID id){
-        Category category = repository.findById(id).orElseThrow();
+        Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
         category.setActive(false);
     }
