@@ -26,7 +26,7 @@ public class Category {
 
     String description;
 
-    Boolean active;
+    Boolean active = true;
 
     LocalDateTime createdAt = LocalDateTime.now();
 
@@ -36,6 +36,7 @@ public class Category {
         this.code = code;
         this.name = name;
         this.description = description;
+        this.active = true;
     }
 
 }
