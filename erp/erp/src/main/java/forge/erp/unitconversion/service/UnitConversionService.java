@@ -69,4 +69,16 @@ public class UnitConversionService {
 
         unitConversion.setActive(false);
     }
+
+    public UnitConversionResponse update(UnitConversionRequest request, UUID id){
+        UnitConversion unitConversion = repository.findById(id).orElseThrow();
+
+        unitConversion.setToUnit(request.toUnit());
+        unitConversion.setFromUnit(request.fromUnit());
+        unitConversion.setFactor(request.factor());
+
+        repository.save(unitConversion);
+
+        return mapper.toResponse(unitConversion);
+    }
 }
