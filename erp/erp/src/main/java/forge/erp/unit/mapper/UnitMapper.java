@@ -23,8 +23,9 @@ public class UnitMapper {
         );
     }
     public Unit toEntity(UnitDtoRequest request){
+        // code e gerado no servidor (UnitService), nao vem do request
         return new Unit(
-                request.code(),
+                null,
                 request.name(),
                 request.symbol(),
                 request.type(),

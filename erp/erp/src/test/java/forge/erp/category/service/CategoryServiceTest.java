@@ -5,6 +5,7 @@ import forge.erp.category.dto.CategoryResponse;
 import forge.erp.category.mapper.CategoryMapper;
 import forge.erp.category.model.Category;
 import forge.erp.category.repository.CategoryRepository;
+import forge.erp.common.code.CodeGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,6 +34,9 @@ class CategoryServiceTest {
 
     @Mock
     private CategoryRepository repository;
+
+    @Mock
+    private CodeGenerator codeGenerator;
 
     @InjectMocks
     private CategoryService service;
@@ -51,19 +56,22 @@ class CategoryServiceTest {
     }
 
     @Test
-    @DisplayName("saveCategory deve persistir e retornar a resposta mapeada")
-    void saveCategoryShouldPersistAndReturnResponse() {
-        CategoryRequest request = new CategoryRequest("MOT-001", "Motores", "Categoria de motores");
-        Category entity = sampleEntity();
+    @DisplayName("saveCategory deve gerar o code com prefixo CAT, persistir e retornar a resposta")
+    void saveCategoryShouldGenerateCodePersistAndReturnResponse() {
+        CategoryRequest request = new CategoryRequest("Motores", "Categoria de motores");
+        Category entity = new Category(null, "Motores", "Categoria de motores");
         CategoryResponse expected = responseOf(entity);
 
         when(mapper.toEntity(request)).thenReturn(entity);
+        when(codeGenerator.generate(eq("CAT"), any())).thenReturn("CAT-0149");
         when(repository.save(entity)).thenReturn(entity);
         when(mapper.toResponse(entity)).thenReturn(expected);
 
         CategoryResponse result = service.saveCategory(request);
 
         assertThat(result).isEqualTo(expected);
+        // o code gerado no servidor deve ser aplicado na entidade antes de salvar
+        assertThat(entity.getCode()).isEqualTo("CAT-0149");
         verify(repository).save(entity);
     }
 
@@ -106,11 +114,12 @@ class CategoryServiceTest {
     }
 
     @Test
-    @DisplayName("update deve aplicar os valores do request na entidade e persistir")
+    @DisplayName("update deve aplicar name/description do request e preservar o code")
     void updateShouldApplyRequestValues() {
         Category entity = sampleEntity();
+        String originalCode = entity.getCode();
         UUID id = entity.getId();
-        CategoryRequest request = new CategoryRequest("MOT-999", "Motores Eletricos", "Nova descricao");
+        CategoryRequest request = new CategoryRequest("Motores Eletricos", "Nova descricao");
 
         when(repository.findById(id)).thenReturn(Optional.of(entity));
         when(repository.save(any(Category.class))).thenReturn(entity);
@@ -118,10 +127,10 @@ class CategoryServiceTest {
 
         service.update(id, request);
 
-        // regressao: valores do request devem ser aplicados, nao os antigos
-        assertThat(entity.getCode()).isEqualTo("MOT-999");
+        // name/description sao atualizados; code e imutavel (gerado no servidor)
         assertThat(entity.getName()).isEqualTo("Motores Eletricos");
         assertThat(entity.getDescription()).isEqualTo("Nova descricao");
+        assertThat(entity.getCode()).isEqualTo(originalCode);
         verify(repository).save(entity);
     }
 
@@ -129,7 +138,7 @@ class CategoryServiceTest {
     @DisplayName("update deve lancar excecao quando categoria nao existe")
     void updateShouldThrowWhenMissing() {
         UUID id = UUID.randomUUID();
-        CategoryRequest request = new CategoryRequest("X", "Y", "Z");
+        CategoryRequest request = new CategoryRequest("Y", "Z");
         when(repository.findById(id)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.update(id, request))

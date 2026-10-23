@@ -22,13 +22,14 @@ class CategoryMapperTest {
     }
 
     @Test
-    @DisplayName("toEntity deve copiar code, name e description do request")
+    @DisplayName("toEntity deve copiar name e description do request e nao definir code")
     void toEntityShouldMapRequestFields() {
-        CategoryRequest request = new CategoryRequest("MOT-001", "Motores", "Categoria de motores");
+        CategoryRequest request = new CategoryRequest("Motores", "Categoria de motores");
 
         Category entity = mapper.toEntity(request);
 
-        assertThat(entity.getCode()).isEqualTo("MOT-001");
+        // code e gerado no servidor, nao vem do request
+        assertThat(entity.getCode()).isNull();
         assertThat(entity.getName()).isEqualTo("Motores");
         assertThat(entity.getDescription()).isEqualTo("Categoria de motores");
     }

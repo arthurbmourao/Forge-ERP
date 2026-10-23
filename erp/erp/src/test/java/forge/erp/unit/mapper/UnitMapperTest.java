@@ -23,13 +23,14 @@ class UnitMapperTest {
     }
 
     @Test
-    @DisplayName("toEntity deve copiar os campos do request")
+    @DisplayName("toEntity deve copiar os campos do request e nao definir code")
     void toEntityShouldMapRequestFields() {
-        UnitDtoRequest request = new UnitDtoRequest("Quilograma", "KG", "kg", UnitType.MASS, 3, true);
+        UnitDtoRequest request = new UnitDtoRequest("Quilograma", "kg", UnitType.MASS, 3, true);
 
         Unit entity = mapper.toEntity(request);
 
-        assertThat(entity.getCode()).isEqualTo("KG");
+        // code e gerado no servidor, nao vem do request
+        assertThat(entity.getCode()).isNull();
         assertThat(entity.getName()).isEqualTo("Quilograma");
         assertThat(entity.getSymbol()).isEqualTo("kg");
         assertThat(entity.getType()).isEqualTo(UnitType.MASS);

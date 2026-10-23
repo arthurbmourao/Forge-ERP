@@ -1,5 +1,6 @@
 package forge.erp.unit.service;
 
+import forge.erp.common.code.CodeGenerator;
 import forge.erp.unit.dto.UnitDtoRequest;
 import forge.erp.unit.dto.UnitDtoResponse;
 import forge.erp.unit.mapper.UnitMapper;
@@ -16,12 +17,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UnitService {
 
+    private static final String CODE_PREFIX = "UNI";
+
     private final UnitMapper mapper;
     private final UnitRepository repository;
+    private final CodeGenerator codeGenerator;
 
     public UnitDtoResponse saveUnit(UnitDtoRequest request) {
 
         Unit unit = mapper.toEntity(request);
+
+        unit.setCode(codeGenerator.generate(CODE_PREFIX, repository::existsByCode));
 
         unit = repository.save(unit);
 
