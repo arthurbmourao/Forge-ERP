@@ -49,5 +49,17 @@ public class CategoryController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<Void> setActivate(@RequestParam UUID id){
+        service.turnOn(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/desactivate")
+    public ResponseEntity<Void> setDeactivate(@RequestParam UUID id){
+        service.turnOff(id);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }

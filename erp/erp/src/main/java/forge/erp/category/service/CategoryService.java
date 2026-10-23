@@ -8,7 +8,7 @@ import forge.erp.category.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,10 +43,12 @@ public class CategoryService {
     public CategoryResponse update(UUID id, CategoryRequest categoryRequest){
         Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
-        category.setName(category.getName());
-        category.setCode(category.getCode());
-        category.setDescription(category.getDescription());
-        category.setActive(category.getActive());
+        category.setName(categoryRequest.name());
+        category.setCode(categoryRequest.code());
+        category.setDescription(categoryRequest.description());
+        category.setUpdatedAt(LocalDateTime.now());
+
+        category = repository.save(category);
 
         return mapper.toResponse(category);
 
@@ -67,4 +69,6 @@ public class CategoryService {
 
         category.setActive(false);
     }
+
+
 }

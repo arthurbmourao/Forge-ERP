@@ -26,7 +26,7 @@ public class Category {
 
     String description;
 
-    Boolean active;
+    Boolean active = true;
 
     LocalDateTime createdAt = LocalDateTime.now();
 
