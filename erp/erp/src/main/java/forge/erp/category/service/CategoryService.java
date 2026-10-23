@@ -5,6 +5,7 @@ import forge.erp.category.dto.CategoryResponse;
 import forge.erp.category.mapper.CategoryMapper;
 import forge.erp.category.model.Category;
 import forge.erp.category.repository.CategoryRepository;
+import forge.erp.common.code.CodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +17,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CategoryService {
 
+    private static final String CODE_PREFIX = "CAT";
+
     private final CategoryMapper mapper;
     private final CategoryRepository repository;
+    private final CodeGenerator codeGenerator;
 
     public CategoryResponse saveCategory(CategoryRequest categoryRequest){
         Category category = mapper.toEntity(categoryRequest);
+
+        category.setCode(codeGenerator.generate(CODE_PREFIX, repository::existsByCode));
 
         category = repository.save(category);
 
@@ -43,8 +49,8 @@ public class CategoryService {
     public CategoryResponse update(UUID id, CategoryRequest categoryRequest){
         Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
+        // code e gerado no servidor e imutavel: nao e alterado no update
         category.setName(categoryRequest.name());
-        category.setCode(categoryRequest.code());
         category.setDescription(categoryRequest.description());
         category.setUpdatedAt(LocalDateTime.now());
 

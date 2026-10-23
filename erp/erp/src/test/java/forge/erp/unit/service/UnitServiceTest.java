@@ -2,6 +2,7 @@ package forge.erp.unit.service;
 
 import forge.erp.unit.dto.UnitDtoRequest;
 import forge.erp.unit.dto.UnitDtoResponse;
+import forge.erp.common.code.CodeGenerator;
 import forge.erp.unit.enums.UnitType;
 import forge.erp.unit.mapper.UnitMapper;
 import forge.erp.unit.model.Unit;
@@ -20,6 +21,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +34,9 @@ class UnitServiceTest {
 
     @Mock
     private UnitRepository repository;
+
+    @Mock
+    private CodeGenerator codeGenerator;
 
     @InjectMocks
     private UnitService service;
@@ -49,20 +55,26 @@ class UnitServiceTest {
     }
 
     @Test
-    @DisplayName("saveUnit deve persistir e retornar a resposta construida com os dados da entidade")
-    void saveUnitShouldPersistAndReturnResponse() {
-        UnitDtoRequest request = new UnitDtoRequest("Quilograma", "KG", "kg", UnitType.MASS, 3, true);
-        Unit entity = sampleEntity();
+    @DisplayName("saveUnit deve gerar code com prefixo UNI, persistir e retornar a resposta")
+    void saveUnitShouldGenerateCodePersistAndReturnResponse() {
+        UnitDtoRequest request = new UnitDtoRequest("Quilograma", "kg", UnitType.MASS, 3, true);
+        Unit entity = new Unit(null, "Quilograma", "kg", UnitType.MASS, 3, true);
+        entity.setId(UUID.randomUUID());
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
 
         when(mapper.toEntity(request)).thenReturn(entity);
+        when(codeGenerator.generate(eq("UNI"), any())).thenReturn("UNI-0125");
         when(repository.save(entity)).thenReturn(entity);
 
         UnitDtoResponse result = service.saveUnit(request);
 
         assertThat(result.id()).isEqualTo(entity.getId());
-        assertThat(result.code()).isEqualTo("KG");
+        assertThat(result.code()).isEqualTo("UNI-0125");
         assertThat(result.name()).isEqualTo("Quilograma");
         assertThat(result.type()).isEqualTo(UnitType.MASS);
+        // o code gerado no servidor deve ser aplicado na entidade antes de salvar
+        assertThat(entity.getCode()).isEqualTo("UNI-0125");
         verify(repository).save(entity);
     }
 

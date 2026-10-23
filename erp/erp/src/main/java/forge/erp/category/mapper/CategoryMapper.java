@@ -22,8 +22,9 @@ public class CategoryMapper {
 
     public Category toEntity(CategoryRequest categoryRequest){
 
+        // code e gerado no servidor (CategoryService), nao vem do request
         return new Category(
-                categoryRequest.code(),
+                null,
                 categoryRequest.name(),
                 categoryRequest.description()
         );
