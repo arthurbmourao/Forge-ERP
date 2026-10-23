@@ -39,5 +39,6 @@ public class UnitConversion {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public UnitConversion(@NotNull Unit unit, @NotNull Unit unit1, @NotNull BigDecimal factor, @NotNull boolean active) {
+        unit = this.unit
     }
 }
