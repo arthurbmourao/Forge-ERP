@@ -157,8 +157,8 @@ class CategoryServiceTest {
     }
 
     @Test
-    @DisplayName("turnOn deve ativar a categoria")
-    void turnOnShouldActivate() {
+    @DisplayName("turnOn deve ativar e persistir a categoria")
+    void turnOnShouldActivateAndPersist() {
         Category entity = sampleEntity();
         entity.setActive(false);
         when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
@@ -166,11 +166,13 @@ class CategoryServiceTest {
         service.turnOn(entity.getId());
 
         assertThat(entity.getActive()).isTrue();
+        // regressao: a alteracao precisa ser persistida, nao apenas feita em memoria
+        verify(repository).save(entity);
     }
 
     @Test
-    @DisplayName("turnOff deve desativar a categoria")
-    void turnOffShouldDeactivate() {
+    @DisplayName("turnOff deve desativar e persistir a categoria")
+    void turnOffShouldDeactivateAndPersist() {
         Category entity = sampleEntity();
         entity.setActive(true);
         when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
@@ -178,5 +180,17 @@ class CategoryServiceTest {
         service.turnOff(entity.getId());
 
         assertThat(entity.getActive()).isFalse();
+        verify(repository).save(entity);
+    }
+
+    @Test
+    @DisplayName("turnOn e turnOff devem lancar excecao e nao salvar quando a categoria nao existe")
+    void turnOnAndTurnOffShouldThrowWhenMissing() {
+        UUID id = UUID.randomUUID();
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.turnOn(id)).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> service.turnOff(id)).isInstanceOf(RuntimeException.class);
+        verify(repository, never()).save(any());
     }
 }

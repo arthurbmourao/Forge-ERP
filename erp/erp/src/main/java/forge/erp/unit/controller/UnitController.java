@@ -20,38 +20,34 @@ public class UnitController {
     private final UnitService service;
 
     @PostMapping
-    @Valid
-    public ResponseEntity<UnitDtoResponse> saveUnit(@RequestBody UnitDtoRequest unitDtoRequest){
+    public ResponseEntity<UnitDtoResponse> saveUnit(@Valid @RequestBody UnitDtoRequest unitDtoRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(service.saveUnit(unitDtoRequest));
     }
 
     @GetMapping
-    @Valid
     public ResponseEntity<List<UnitDtoResponse>> getAll(){
         return ResponseEntity.status(HttpStatus.OK).body(service.getAll());
     }
 
     @GetMapping("/{id}")
-    @Valid
-    public ResponseEntity<UnitDtoResponse> findById(@RequestParam UUID id){
+    public ResponseEntity<UnitDtoResponse> findById(@PathVariable UUID id){
         return ResponseEntity.status(HttpStatus.OK).body(service.getById(id));
     }
 
     @DeleteMapping("/{id}")
-    @Valid
-    public ResponseEntity<Void> deleteById(@RequestParam UUID id){
+    public ResponseEntity<Void> deleteById(@PathVariable UUID id){
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/activate")
-    public ResponseEntity<Void> setActivate(@RequestParam UUID id){
+    public ResponseEntity<Void> setActivate(@PathVariable UUID id){
         service.turnOn(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/desactivate")
-    public ResponseEntity<Void> setDeactivate(@RequestParam UUID id){
+    public ResponseEntity<Void> setDeactivate(@PathVariable UUID id){
         service.turnOff(id);
         return ResponseEntity.noContent().build();
     }
