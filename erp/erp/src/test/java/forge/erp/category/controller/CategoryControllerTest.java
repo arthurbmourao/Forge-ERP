@@ -3,6 +3,7 @@ package forge.erp.category.controller;
 import forge.erp.category.dto.CategoryRequest;
 import forge.erp.category.dto.CategoryResponse;
 import forge.erp.category.service.CategoryService;
+import forge.erp.common.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,7 +40,32 @@ class CategoryControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new CategoryController(service)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new CategoryController(service))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
+
+    @Test
+    @DisplayName("POST /category com nome em branco deve retornar 400 sem chamar o service")
+    void createWithInvalidBodyShouldReturn400() throws Exception {
+        mockMvc.perform(post("/category").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\",\"description\":\"Parafusos\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.name").exists());
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    @DisplayName("PUT /category?id= com descricao em branco deve retornar 400 sem chamar o service")
+    void updateWithInvalidBodyShouldReturn400() throws Exception {
+        mockMvc.perform(put("/category").param("id", UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Fixadores\",\"description\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.description").exists());
+
+        verifyNoInteractions(service);
     }
 
     private CategoryResponse sampleResponse(UUID id) {

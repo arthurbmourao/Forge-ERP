@@ -20,25 +20,21 @@ public class UnitController {
     private final UnitService service;
 
     @PostMapping
-    @Valid
-    public ResponseEntity<UnitDtoResponse> saveUnit(@RequestBody UnitDtoRequest unitDtoRequest){
+    public ResponseEntity<UnitDtoResponse> saveUnit(@Valid @RequestBody UnitDtoRequest unitDtoRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(service.saveUnit(unitDtoRequest));
     }
 
     @GetMapping
-    @Valid
     public ResponseEntity<List<UnitDtoResponse>> getAll(){
         return ResponseEntity.status(HttpStatus.OK).body(service.getAll());
     }
 
     @GetMapping("/{id}")
-    @Valid
     public ResponseEntity<UnitDtoResponse> findById(@PathVariable UUID id){
         return ResponseEntity.status(HttpStatus.OK).body(service.getById(id));
     }
 
     @DeleteMapping("/{id}")
-    @Valid
     public ResponseEntity<Void> deleteById(@PathVariable UUID id){
         service.deleteById(id);
         return ResponseEntity.noContent().build();

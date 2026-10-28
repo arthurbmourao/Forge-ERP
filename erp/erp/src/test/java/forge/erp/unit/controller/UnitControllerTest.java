@@ -1,5 +1,6 @@
 package forge.erp.unit.controller;
 
+import forge.erp.common.exception.GlobalExceptionHandler;
 import forge.erp.unit.dto.UnitDtoRequest;
 import forge.erp.unit.dto.UnitDtoResponse;
 import forge.erp.unit.enums.UnitType;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,7 +40,22 @@ class UnitControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new UnitController(service)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new UnitController(service))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
+
+    @Test
+    @DisplayName("POST /unit com simbolo longo demais e sem tipo deve retornar 400 sem chamar o service")
+    void createWithInvalidBodyShouldReturn400() throws Exception {
+        mockMvc.perform(post("/unit").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Quilograma\",\"symbol\":\"TOOLONG\","
+                                + "\"decimalPlaces\":3,\"active\":true}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.symbol").exists())
+                .andExpect(jsonPath("$.errors.type").exists());
+
+        verifyNoInteractions(service);
     }
 
     private UnitDtoResponse sampleResponse(UUID id) {

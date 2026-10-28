@@ -1,5 +1,7 @@
 package forge.erp.unitconversion.service;
 
+import forge.erp.common.exception.BusinessRuleException;
+import forge.erp.common.exception.ConflictException;
 import forge.erp.common.exception.ResourceNotFoundException;
 import forge.erp.unit.enums.UnitType;
 import forge.erp.unit.model.Unit;
@@ -61,9 +63,27 @@ class UnitConversionServiceTest {
         return conversion;
     }
 
+    private Unit unit(String code, UnitType type, boolean active) {
+        Unit unit = new Unit(code, code, code.toLowerCase(), type, 0, active);
+        unit.setId(UUID.randomUUID());
+        return unit;
+    }
+
     private UnitConversionResponse responseOf(UnitConversion c) {
-        return new UnitConversionResponse(c.getId(), c.getFromUnit(), c.getToUnit(),
+        return new UnitConversionResponse(c.getId(),
+                c.getFromUnit().getId(), c.getFromUnit().getCode(), c.getFromUnit().getSymbol(),
+                c.getToUnit().getId(), c.getToUnit().getCode(), c.getToUnit().getSymbol(),
                 c.getFactor(), c.isActive(), c.getCreatedAt());
+    }
+
+    private UnitConversionRequest requestFor(Unit from, Unit to) {
+        return new UnitConversionRequest(from.getId(), to.getId(), new BigDecimal("1000"), true);
+    }
+
+    private void stubUnits(Unit... units) {
+        for (Unit u : units) {
+            when(unitRepository.findById(u.getId())).thenReturn(Optional.of(u));
+        }
     }
 
     @Test
@@ -79,12 +99,13 @@ class UnitConversionServiceTest {
         when(unitRepository.findById(to.getId())).thenReturn(Optional.of(to));
         when(mapper.toEntity(request, from, to)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(entity);
+        when(mapper.toResponse(entity)).thenReturn(responseOf(entity));
 
         UnitConversionResponse result = service.saveUnitConversion(request);
 
         assertThat(result.id()).isEqualTo(entity.getId());
-        assertThat(result.fromUnit()).isEqualTo(from);
-        assertThat(result.toUnit()).isEqualTo(to);
+        assertThat(result.fromUnitId()).isEqualTo(from.getId());
+        assertThat(result.toUnitId()).isEqualTo(to.getId());
         assertThat(result.factor()).isEqualByComparingTo("1000");
         assertThat(result.active()).isTrue();
         verify(repository).save(entity);
@@ -146,10 +167,156 @@ class UnitConversionServiceTest {
                 UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("500"), true);
 
         when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
-        when(unitRepository.findById(request.toUnitId())).thenReturn(Optional.empty());
+        when(unitRepository.findById(request.fromUnitId())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.update(request, entity.getId()))
                 .isInstanceOf(ResourceNotFoundException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update deve lancar 404 quando a conversao nao existe")
+    void updateShouldFailWhenConversionMissing() {
+        UUID id = UUID.randomUUID();
+        UnitConversionRequest request = new UnitConversionRequest(
+                UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("500"), true);
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(request, id))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(repository, never()).save(any());
+    }
+
+    // ---------- regras da conversao ----------
+
+    @Test
+    @DisplayName("save deve rejeitar a mesma unidade como origem e destino")
+    void saveShouldRejectSameUnit() {
+        Unit kg = unit("KG", UnitType.MASS, true);
+        stubUnits(kg);
+
+        assertThatThrownBy(() -> service.saveUnitConversion(requestFor(kg, kg)))
+                .isInstanceOf(BusinessRuleException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("save deve rejeitar unidades de tipos diferentes (KG -> M)")
+    void saveShouldRejectDifferentUnitTypes() {
+        Unit kg = unit("KG", UnitType.MASS, true);
+        Unit m = unit("M", UnitType.LENGTH, true);
+        stubUnits(kg, m);
+
+        assertThatThrownBy(() -> service.saveUnitConversion(requestFor(kg, m)))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("MASS")
+                .hasMessageContaining("LENGTH");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("save deve rejeitar unidade de origem inativa")
+    void saveShouldRejectInactiveFromUnit() {
+        Unit kg = unit("KG", UnitType.MASS, false);
+        Unit g = unit("G", UnitType.MASS, true);
+        stubUnits(kg, g);
+
+        assertThatThrownBy(() -> service.saveUnitConversion(requestFor(kg, g)))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("origem");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("save deve rejeitar unidade de destino inativa")
+    void saveShouldRejectInactiveToUnit() {
+        Unit kg = unit("KG", UnitType.MASS, true);
+        Unit g = unit("G", UnitType.MASS, false);
+        stubUnits(kg, g);
+
+        assertThatThrownBy(() -> service.saveUnitConversion(requestFor(kg, g)))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("destino");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("save deve lancar conflito quando ja existe conversao para o par origem/destino")
+    void saveShouldRejectDuplicatePair() {
+        Unit kg = unit("KG", UnitType.MASS, true);
+        Unit g = unit("G", UnitType.MASS, true);
+        stubUnits(kg, g);
+        UnitConversion existing = new UnitConversion(kg, g, new BigDecimal("1000"), true);
+        existing.setId(UUID.randomUUID());
+        when(repository.findByFromUnitIdAndToUnitId(kg.getId(), g.getId())).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> service.saveUnitConversion(requestFor(kg, g)))
+                .isInstanceOf(ConflictException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update nao deve tratar o proprio registro como duplicata")
+    void updateShouldNotTreatItselfAsDuplicate() {
+        UnitConversion entity = sampleEntity();
+        Unit from = entity.getFromUnit();
+        Unit to = entity.getToUnit();
+        when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        stubUnits(from, to);
+        when(repository.findByFromUnitIdAndToUnitId(from.getId(), to.getId())).thenReturn(Optional.of(entity));
+        when(mapper.toResponse(entity)).thenReturn(responseOf(entity));
+
+        service.update(new UnitConversionRequest(from.getId(), to.getId(), new BigDecimal("2000"), true),
+                entity.getId());
+
+        assertThat(entity.getFactor()).isEqualByComparingTo("2000");
+        verify(repository).save(entity);
+    }
+
+    @Test
+    @DisplayName("update deve lancar conflito ao trocar para um par que ja pertence a outra conversao")
+    void updateShouldRejectDuplicateWithOtherConversion() {
+        UnitConversion entity = sampleEntity();
+        Unit from = entity.getFromUnit();
+        Unit newTo = unit("MG", UnitType.MASS, true);
+        UnitConversion other = new UnitConversion(from, newTo, new BigDecimal("1000000"), true);
+        other.setId(UUID.randomUUID());
+        when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        stubUnits(from, newTo);
+        when(repository.findByFromUnitIdAndToUnitId(from.getId(), newTo.getId())).thenReturn(Optional.of(other));
+
+        assertThatThrownBy(() -> service.update(requestFor(from, newTo), entity.getId()))
+                .isInstanceOf(ConflictException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update nao deve exigir unidade ativa quando a unidade nao mudou")
+    void updateShouldAllowUnchangedInactiveUnit() {
+        UnitConversion entity = sampleEntity();
+        entity.getFromUnit().setActive(false);
+        Unit from = entity.getFromUnit();
+        Unit to = entity.getToUnit();
+        when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        stubUnits(from, to);
+        when(mapper.toResponse(entity)).thenReturn(responseOf(entity));
+
+        service.update(requestFor(from, to), entity.getId());
+
+        verify(repository).save(entity);
+    }
+
+    @Test
+    @DisplayName("update deve rejeitar troca para unidade inativa")
+    void updateShouldRejectChangeToInactiveUnit() {
+        UnitConversion entity = sampleEntity();
+        Unit from = entity.getFromUnit();
+        Unit inactive = unit("MG", UnitType.MASS, false);
+        when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        stubUnits(from, inactive);
+
+        assertThatThrownBy(() -> service.update(requestFor(from, inactive), entity.getId()))
+                .isInstanceOf(BusinessRuleException.class);
         verify(repository, never()).save(any());
     }
 

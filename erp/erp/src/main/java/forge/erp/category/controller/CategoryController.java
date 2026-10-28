@@ -20,13 +20,11 @@ public class CategoryController {
     private final CategoryService service;
 
     @PostMapping
-    @Valid
-    public ResponseEntity<CategoryResponse> saveCategory (@RequestBody CategoryRequest request){
+    public ResponseEntity<CategoryResponse> saveCategory (@Valid @RequestBody CategoryRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(service.saveCategory(request));
     }
 
     @GetMapping("/{id}")
-    @Valid
     public ResponseEntity<CategoryResponse> findById(@PathVariable UUID id){
         return ResponseEntity.status(HttpStatus.OK).body(service.findById(id));
     }
@@ -37,13 +35,11 @@ public class CategoryController {
     }
 
     @PutMapping
-    @Valid
-    public ResponseEntity<CategoryResponse> updateCategory(@RequestParam UUID id, @RequestBody CategoryRequest request){
+    public ResponseEntity<CategoryResponse> updateCategory(@RequestParam UUID id, @Valid @RequestBody CategoryRequest request){
         return ResponseEntity.status(HttpStatus.OK).body(service.update(id,request));
     }
 
     @DeleteMapping("/{id}")
-    @Valid
     public ResponseEntity<Void> deleteCategory(@PathVariable UUID id){
         service.deleteById(id);
         return ResponseEntity.noContent().build();

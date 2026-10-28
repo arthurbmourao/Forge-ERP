@@ -48,8 +48,12 @@ class UnitConversionMapperTest {
         UnitConversionResponse response = mapper.toResponse(conversion);
 
         assertThat(response.id()).isEqualTo(conversion.getId());
-        assertThat(response.fromUnit()).isEqualTo(from);
-        assertThat(response.toUnit()).isEqualTo(to);
+        assertThat(response.fromUnitId()).isEqualTo(from.getId());
+        assertThat(response.fromUnitCode()).isEqualTo("KG");
+        assertThat(response.fromUnitSymbol()).isEqualTo("kg");
+        assertThat(response.toUnitId()).isEqualTo(to.getId());
+        assertThat(response.toUnitCode()).isEqualTo("G");
+        assertThat(response.toUnitSymbol()).isEqualTo("g");
         assertThat(response.factor()).isEqualByComparingTo("1000");
         assertThat(response.active()).isTrue();
         assertThat(response.createdAt()).isEqualTo(now);

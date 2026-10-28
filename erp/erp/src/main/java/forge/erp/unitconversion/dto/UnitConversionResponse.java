@@ -1,8 +1,5 @@
 package forge.erp.unitconversion.dto;
 
-import forge.erp.unit.model.Unit;
-import jakarta.validation.constraints.NotNull;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -10,9 +7,17 @@ import java.util.UUID;
 public record UnitConversionResponse(
         UUID id,
 
-        Unit fromUnit,
+        UUID fromUnitId,
 
-        Unit toUnit,
+        String fromUnitCode,
+
+        String fromUnitSymbol,
+
+        UUID toUnitId,
+
+        String toUnitCode,
+
+        String toUnitSymbol,
 
         BigDecimal factor,
 
