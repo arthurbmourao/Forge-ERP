@@ -49,7 +49,7 @@ public class CategoryService {
     public CategoryResponse update(UUID id, CategoryRequest categoryRequest){
         Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
-        // code e gerado no servidor e imutavel: nao e alterado no update
+
         category.setName(categoryRequest.name());
         category.setDescription(categoryRequest.description());
         category.setUpdatedAt(LocalDateTime.now());
