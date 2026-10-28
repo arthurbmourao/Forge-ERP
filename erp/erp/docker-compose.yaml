@@ -15,5 +15,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Autenticacao (somente desenvolvimento): console em http://localhost:8180 (admin / admin).
+  # O realm "forge" e importado de ./keycloak/forge-realm.json na primeira subida.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3
+    container_name: forge-keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+    ports:
+      - "8180:8080"
+
+    volumes:
+      - ./keycloak/forge-realm.json:/opt/keycloak/data/import/forge-realm.json:ro
+
 volumes:
   postgres_data:
