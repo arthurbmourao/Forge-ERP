@@ -34,26 +34,26 @@ public class UnitConversionController {
 
     @GetMapping("/{id}")
     @Valid
-    public ResponseEntity<UnitConversionResponse> findBYId(@RequestParam UUID id){
+    public ResponseEntity<UnitConversionResponse> findBYId(@PathVariable UUID id){
         return ResponseEntity.status(HttpStatus.OK).body(service.findById(id));
     }
 
     @PutMapping("/{id}")
     @Valid
-    public ResponseEntity<UnitConversionResponse> updateUnitConversion(@RequestParam UUID id, @RequestBody UnitConversionRequest request){
+    public ResponseEntity<UnitConversionResponse> updateUnitConversion(@PathVariable UUID id, @RequestBody UnitConversionRequest request){
         return ResponseEntity.status(HttpStatus.OK).body(service.update(request, id));
     }
 
     @PutMapping("/{id}/activate")
     @Valid
-    public ResponseEntity<Void> setActivate(@RequestParam UUID id){
+    public ResponseEntity<Void> setActivate(@PathVariable UUID id){
         service.turnOn(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/desactivate")
     @Valid
-    public ResponseEntity<Void> setDeactivate(@RequestParam UUID id){
+    public ResponseEntity<Void> setDeactivate(@PathVariable UUID id){
         service.turnOff(id);
         return ResponseEntity.noContent().build();
     }

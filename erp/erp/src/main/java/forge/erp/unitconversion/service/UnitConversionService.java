@@ -1,6 +1,8 @@
 package forge.erp.unitconversion.service;
 
+import forge.erp.common.exception.ResourceNotFoundException;
 import forge.erp.unit.model.Unit;
+import forge.erp.unit.repository.UnitRepository;
 import forge.erp.unitconversion.dto.UnitConversionRequest;
 import forge.erp.unitconversion.dto.UnitConversionResponse;
 import forge.erp.unitconversion.mapper.UnitConversionMapper;
@@ -20,9 +22,13 @@ public class UnitConversionService {
 
     private final UnitConversionRepository repository;
     private final UnitConversionMapper mapper;
+    private final UnitRepository unitRepository;
 
     public UnitConversionResponse saveUnitConversion (UnitConversionRequest unitConversionRequest){
-        UnitConversion unitConversion = mapper.toEntity(unitConversionRequest);
+        Unit fromUnit = findUnit(unitConversionRequest.fromUnitId());
+        Unit toUnit = findUnit(unitConversionRequest.toUnitId());
+
+        UnitConversion unitConversion = mapper.toEntity(unitConversionRequest, fromUnit, toUnit);
         unitConversion = repository.save(unitConversion);
 
         return new UnitConversionResponse(
@@ -73,12 +79,17 @@ public class UnitConversionService {
     public UnitConversionResponse update(UnitConversionRequest request, UUID id){
         UnitConversion unitConversion = repository.findById(id).orElseThrow();
 
-        unitConversion.setToUnit(request.toUnit());
-        unitConversion.setFromUnit(request.fromUnit());
+        unitConversion.setToUnit(findUnit(request.toUnitId()));
+        unitConversion.setFromUnit(findUnit(request.fromUnitId()));
         unitConversion.setFactor(request.factor());
 
         repository.save(unitConversion);
 
         return mapper.toResponse(unitConversion);
+    }
+
+    private Unit findUnit(UUID unitId){
+        return unitRepository.findById(unitId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Unidade", unitId));
     }
 }

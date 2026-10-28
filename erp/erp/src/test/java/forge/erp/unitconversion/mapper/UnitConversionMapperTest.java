@@ -56,18 +56,18 @@ class UnitConversionMapperTest {
     }
 
     @Test
-    @DisplayName("toEntity nao deve retornar null a partir de um request valido")
-    void toEntityShouldNotReturnNull() {
+    @DisplayName("toEntity deve usar as unidades resolvidas e os valores do request")
+    void toEntityShouldMapRequestFields() {
         Unit from = unit("KG", "Quilograma", "kg");
         Unit to = unit("G", "Grama", "g");
         UnitConversionRequest request =
-                new UnitConversionRequest(from, to, new BigDecimal("1000"), true);
+                new UnitConversionRequest(from.getId(), to.getId(), new BigDecimal("1000"), true);
 
-        UnitConversion entity = mapper.toEntity(request);
+        UnitConversion entity = mapper.toEntity(request, from, to);
 
-        assertThat(entity).isNotNull();
-        // NOTA: o construtor UnitConversion(Unit, Unit, BigDecimal, boolean) atualmente
-        // tem corpo vazio e nao atribui os campos. Quando esse bug for corrigido,
-        // substitua as assercoes abaixo pelas verificacoes dos valores do request.
+        assertThat(entity.getFromUnit()).isSameAs(from);
+        assertThat(entity.getToUnit()).isSameAs(to);
+        assertThat(entity.getFactor()).isEqualByComparingTo("1000");
+        assertThat(entity.isActive()).isTrue();
     }
 }

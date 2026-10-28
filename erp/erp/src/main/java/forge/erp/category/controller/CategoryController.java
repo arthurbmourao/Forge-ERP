@@ -27,8 +27,8 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     @Valid
-    public ResponseEntity<CategoryResponse> findById(@RequestParam UUID id){
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.findById(id));
+    public ResponseEntity<CategoryResponse> findById(@PathVariable UUID id){
+        return ResponseEntity.status(HttpStatus.OK).body(service.findById(id));
     }
 
     @GetMapping
@@ -44,19 +44,19 @@ public class CategoryController {
 
     @DeleteMapping("/{id}")
     @Valid
-    public ResponseEntity<Void> deleteCategory(@RequestParam UUID id){
+    public ResponseEntity<Void> deleteCategory(@PathVariable UUID id){
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/activate")
-    public ResponseEntity<Void> setActivate(@RequestParam UUID id){
+    public ResponseEntity<Void> setActivate(@PathVariable UUID id){
         service.turnOn(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/desactivate")
-    public ResponseEntity<Void> setDeactivate(@RequestParam UUID id){
+    public ResponseEntity<Void> setDeactivate(@PathVariable UUID id){
         service.turnOff(id);
         return ResponseEntity.noContent().build();
     }

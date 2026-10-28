@@ -8,6 +8,7 @@ import forge.erp.category.repository.CategoryRepository;
 import forge.erp.common.code.CodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,16 +65,22 @@ public class CategoryService {
         repository.deleteById(id);
     }
 
+    @Transactional
     public void turnOn(UUID id){
         Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
         category.setActive(true);
+
+        repository.save(category);
     }
 
+    @Transactional
     public void turnOff(UUID id){
         Category category = repository.findById(id).orElseThrow(RuntimeException::new);
 
         category.setActive(false);
+
+        repository.save(category);
     }
 
 

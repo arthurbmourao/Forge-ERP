@@ -1,7 +1,9 @@
 package forge.erp.unitconversion.service;
 
+import forge.erp.common.exception.ResourceNotFoundException;
 import forge.erp.unit.enums.UnitType;
 import forge.erp.unit.model.Unit;
+import forge.erp.unit.repository.UnitRepository;
 import forge.erp.unitconversion.dto.UnitConversionRequest;
 import forge.erp.unitconversion.dto.UnitConversionResponse;
 import forge.erp.unitconversion.mapper.UnitConversionMapper;
@@ -22,6 +24,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +37,9 @@ class UnitConversionServiceTest {
 
     @Mock
     private UnitConversionMapper mapper;
+
+    @Mock
+    private UnitRepository unitRepository;
 
     @InjectMocks
     private UnitConversionService service;
@@ -63,20 +70,87 @@ class UnitConversionServiceTest {
     @DisplayName("saveUnitConversion deve persistir e retornar resposta com os dados da entidade")
     void saveShouldPersistAndReturnResponse() {
         UnitConversion entity = sampleEntity();
+        Unit from = entity.getFromUnit();
+        Unit to = entity.getToUnit();
         UnitConversionRequest request = new UnitConversionRequest(
-                entity.getFromUnit(), entity.getToUnit(), entity.getFactor(), true);
+                from.getId(), to.getId(), entity.getFactor(), true);
 
-        when(mapper.toEntity(request)).thenReturn(entity);
+        when(unitRepository.findById(from.getId())).thenReturn(Optional.of(from));
+        when(unitRepository.findById(to.getId())).thenReturn(Optional.of(to));
+        when(mapper.toEntity(request, from, to)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(entity);
 
         UnitConversionResponse result = service.saveUnitConversion(request);
 
         assertThat(result.id()).isEqualTo(entity.getId());
-        assertThat(result.fromUnit()).isEqualTo(entity.getFromUnit());
-        assertThat(result.toUnit()).isEqualTo(entity.getToUnit());
+        assertThat(result.fromUnit()).isEqualTo(from);
+        assertThat(result.toUnit()).isEqualTo(to);
         assertThat(result.factor()).isEqualByComparingTo("1000");
         assertThat(result.active()).isTrue();
         verify(repository).save(entity);
+    }
+
+    @Test
+    @DisplayName("saveUnitConversion deve lancar 404 e nao salvar quando a unidade de origem nao existe")
+    void saveShouldFailWhenFromUnitMissing() {
+        UnitConversionRequest request = new UnitConversionRequest(
+                UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("1000"), true);
+        when(unitRepository.findById(request.fromUnitId())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.saveUnitConversion(request))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("saveUnitConversion deve lancar 404 e nao salvar quando a unidade de destino nao existe")
+    void saveShouldFailWhenToUnitMissing() {
+        Unit from = unit("KG", "Quilograma", "kg");
+        UnitConversionRequest request = new UnitConversionRequest(
+                from.getId(), UUID.randomUUID(), new BigDecimal("1000"), true);
+        when(unitRepository.findById(from.getId())).thenReturn(Optional.of(from));
+        when(unitRepository.findById(request.toUnitId())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.saveUnitConversion(request))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update deve aplicar unidades resolvidas por id e o fator do request")
+    void updateShouldApplyResolvedUnitsAndFactor() {
+        UnitConversion entity = sampleEntity();
+        Unit newFrom = unit("L", "Litro", "l");
+        Unit newTo = unit("ML", "Mililitro", "ml");
+        UnitConversionRequest request = new UnitConversionRequest(
+                newFrom.getId(), newTo.getId(), new BigDecimal("500"), true);
+
+        when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        when(unitRepository.findById(newFrom.getId())).thenReturn(Optional.of(newFrom));
+        when(unitRepository.findById(newTo.getId())).thenReturn(Optional.of(newTo));
+        when(mapper.toResponse(entity)).thenReturn(responseOf(entity));
+
+        service.update(request, entity.getId());
+
+        assertThat(entity.getFromUnit()).isSameAs(newFrom);
+        assertThat(entity.getToUnit()).isSameAs(newTo);
+        assertThat(entity.getFactor()).isEqualByComparingTo("500");
+        verify(repository).save(entity);
+    }
+
+    @Test
+    @DisplayName("update deve lancar 404 e nao salvar quando uma das unidades nao existe")
+    void updateShouldFailWhenUnitMissing() {
+        UnitConversion entity = sampleEntity();
+        UnitConversionRequest request = new UnitConversionRequest(
+                UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("500"), true);
+
+        when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        when(unitRepository.findById(request.toUnitId())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(request, entity.getId()))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(repository, never()).save(any());
     }
 
     @Test

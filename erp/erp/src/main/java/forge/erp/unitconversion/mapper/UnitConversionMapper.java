@@ -20,10 +20,10 @@ public class UnitConversionMapper {
         );
     }
 
-    public UnitConversion toEntity (UnitConversionRequest unitConversionRequest){
+    public UnitConversion toEntity (UnitConversionRequest unitConversionRequest, Unit fromUnit, Unit toUnit){
         return new UnitConversion(
-                unitConversionRequest.fromUnit(),
-                unitConversionRequest.toUnit(),
+                fromUnit,
+                toUnit,
                 unitConversionRequest.factor(),
                 unitConversionRequest.active()
         );
