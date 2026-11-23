@@ -22,7 +22,7 @@ public class UnitConversionController {
     private final UnitConversionService service;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('UNIT_CONVERSION_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_CONVERSION_CREATE')")
     public ResponseEntity<UnitConversionResponse> saveUnitConversion (@Valid @RequestBody UnitConversionRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(service.saveUnitConversion(request));
     }
@@ -40,20 +40,20 @@ public class UnitConversionController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UNIT_CONVERSION_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_CONVERSION_UPDATE')")
     public ResponseEntity<UnitConversionResponse> updateUnitConversion(@PathVariable UUID id, @Valid @RequestBody UnitConversionRequest request){
         return ResponseEntity.status(HttpStatus.OK).body(service.update(request, id));
     }
 
     @PutMapping("/{id}/activate")
-    @PreAuthorize("hasAuthority('UNIT_CONVERSION_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_CONVERSION_UPDATE')")
     public ResponseEntity<Void> setActivate(@PathVariable UUID id){
         service.turnOn(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/desactivate")
-    @PreAuthorize("hasAuthority('UNIT_CONVERSION_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_CONVERSION_UPDATE')")
     public ResponseEntity<Void> setDeactivate(@PathVariable UUID id){
         service.turnOff(id);
         return ResponseEntity.noContent().build();

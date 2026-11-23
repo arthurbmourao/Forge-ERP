@@ -27,5 +27,11 @@ spring:
           # emissor do Keycloak (realm "forge"); sobrescreva com a variavel KEYCLOAK_ISSUER_URI
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/forge}
 
+forge:
+  security:
+    # username do Keycloak que vira ADMIN no acesso, enquanto nao existir nenhum ADMIN.
+    # Defina pela variavel FORGE_BOOTSTRAP_ADMIN; vazio = desabilitado.
+    bootstrap-admin: ${FORGE_BOOTSTRAP_ADMIN:}
+
 server:
   port: 8080
