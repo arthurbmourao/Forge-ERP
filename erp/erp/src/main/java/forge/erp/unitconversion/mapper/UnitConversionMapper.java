@@ -10,20 +10,27 @@ import org.springframework.stereotype.Component;
 public class UnitConversionMapper {
 
     public UnitConversionResponse toResponse(UnitConversion unitConversion){
+        Unit fromUnit = unitConversion.getFromUnit();
+        Unit toUnit = unitConversion.getToUnit();
+
         return new UnitConversionResponse(
                 unitConversion.getId(),
-                unitConversion.getFromUnit(),
-                unitConversion.getToUnit(),
+                fromUnit.getId(),
+                fromUnit.getCode(),
+                fromUnit.getSymbol(),
+                toUnit.getId(),
+                toUnit.getCode(),
+                toUnit.getSymbol(),
                 unitConversion.getFactor(),
                 unitConversion.isActive(),
                 unitConversion.getCreatedAt()
         );
     }
 
-    public UnitConversion toEntity (UnitConversionRequest unitConversionRequest){
+    public UnitConversion toEntity (UnitConversionRequest unitConversionRequest, Unit fromUnit, Unit toUnit){
         return new UnitConversion(
-                unitConversionRequest.fromUnit(),
-                unitConversionRequest.toUnit(),
+                fromUnit,
+                toUnit,
                 unitConversionRequest.factor(),
                 unitConversionRequest.active()
         );

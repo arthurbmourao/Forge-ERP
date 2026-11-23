@@ -21,6 +21,7 @@ public class Unit {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
+
     private String code;
 
     private String name;

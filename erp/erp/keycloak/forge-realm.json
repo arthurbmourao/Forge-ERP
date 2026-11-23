@@ -1,0 +1,59 @@
+{
+  "realm": "forge",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "clients": [
+    {
+      "clientId": "forge-erp",
+      "name": "Forge ERP",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:8081/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "3f2b1c8e-5a47-4d6e-9b1a-0c7d2e4f6a11",
+      "username": "analista",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "analista@forge.local",
+      "firstName": "Analista",
+      "lastName": "Forge",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "analista123",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "8a9d4e21-6b3c-4f70-a2d5-1e8c7b9f0d22",
+      "username": "viewer",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "viewer@forge.local",
+      "firstName": "Viewer",
+      "lastName": "Forge",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "viewer123",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

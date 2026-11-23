@@ -9,8 +9,6 @@ public record UnitDtoRequest(
         @Size(max = 35)
         @NotBlank
         String name,
-        @NotBlank
-        String code,
         @Size(max = 5)
         @NotBlank
         String symbol,
