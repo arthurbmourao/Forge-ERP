@@ -22,7 +22,7 @@ public class ProductController {
     private final ProductService service;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('PRODUCT_WRITE')")
+    @PreAuthorize("hasAuthority('PRODUCT_CREATE')")
     public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
         ProductResponse response = service.saveProduct(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -45,28 +45,28 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('PRODUCT_WRITE')")
+    @PreAuthorize("hasAuthority('PRODUCT_UPDATE')")
     public ResponseEntity<ProductResponse> update(@PathVariable UUID id,
                                                   @Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('PRODUCT_WRITE')")
+    @PreAuthorize("hasAuthority('PRODUCT_DELETE')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/activate")
-    @PreAuthorize("hasAuthority('PRODUCT_WRITE')")
+    @PreAuthorize("hasAuthority('PRODUCT_UPDATE')")
     public ResponseEntity<Void> activate(@PathVariable UUID id) {
         service.turnOn(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/deactivate")
-    @PreAuthorize("hasAuthority('PRODUCT_WRITE')")
+    @PreAuthorize("hasAuthority('PRODUCT_UPDATE')")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         service.turnOff(id);
         return ResponseEntity.noContent().build();

@@ -54,6 +54,22 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "id": "5b8e2f10-7c3d-4a96-8e41-2f9a6d0b3c33",
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@forge.local",
+      "firstName": "Admin",
+      "lastName": "Forge",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ]
     }
   ]
 }

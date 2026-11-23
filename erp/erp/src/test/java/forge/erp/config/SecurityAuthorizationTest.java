@@ -13,6 +13,8 @@ import forge.erp.unit.controller.UnitController;
 import forge.erp.unit.service.UnitService;
 import forge.erp.unitconversion.controller.UnitConversionController;
 import forge.erp.unitconversion.service.UnitConversionService;
+import forge.erp.user.controller.UserController;
+import forge.erp.user.service.UserManagementService;
 import forge.erp.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,14 +47,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Verifica, com o SecurityConfig real, que cada endpoint exige exatamente a permissao
- * RECURSO_READ (GET) ou RECURSO_WRITE (demais metodos).
+ * RECURSO_READ (GET), RECURSO_CREATE (POST), RECURSO_UPDATE (PUT/PATCH) ou RECURSO_DELETE (DELETE).
  */
 @WebMvcTest(controllers = {
         CategoryController.class,
         UnitController.class,
         UnitConversionController.class,
         ProductController.class,
-        ProductUnitController.class
+        ProductUnitController.class,
+        UserController.class
 })
 @Import({SecurityConfig.class, LocalUserJwtAuthenticationConverter.class, GlobalExceptionHandler.class})
 class SecurityAuthorizationTest {
@@ -60,11 +63,13 @@ class SecurityAuthorizationTest {
     private static final UUID ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID OTHER_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
+    // as 18 permissoes do sistema (mesmas da migration V7)
     private static final List<String> ALL_PERMISSIONS = List.of(
-            "CATEGORY_READ", "CATEGORY_WRITE",
-            "UNIT_READ", "UNIT_WRITE",
-            "UNIT_CONVERSION_READ", "UNIT_CONVERSION_WRITE",
-            "PRODUCT_READ", "PRODUCT_WRITE");
+            "CATEGORY_READ", "CATEGORY_CREATE", "CATEGORY_UPDATE", "CATEGORY_DELETE",
+            "UNIT_READ", "UNIT_CREATE", "UNIT_UPDATE", "UNIT_DELETE",
+            "UNIT_CONVERSION_READ", "UNIT_CONVERSION_CREATE", "UNIT_CONVERSION_UPDATE", "UNIT_CONVERSION_DELETE",
+            "PRODUCT_READ", "PRODUCT_CREATE", "PRODUCT_UPDATE", "PRODUCT_DELETE",
+            "USER_READ", "USER_UPDATE");
 
     private static final String CATEGORY_BODY = "{\"name\":\"Fixadores\",\"description\":\"Parafusos\"}";
     private static final String UNIT_BODY = "{\"name\":\"Quilograma\",\"symbol\":\"kg\",\"type\":\"MASS\","
@@ -76,6 +81,7 @@ class SecurityAuthorizationTest {
             + "\"active\":true}";
     private static final String PRODUCT_UNIT_BODY = "{\"unitId\":\"" + ID + "\",\"conversionFactor\":100,"
             + "\"purchaseUnit\":true,\"issueUnit\":true,\"active\":true}";
+    private static final String USER_ROLE_BODY = "{\"role\":\"VIEWER\"}";
 
     @Autowired
     private MockMvc mockMvc;
@@ -91,6 +97,8 @@ class SecurityAuthorizationTest {
     private ProductService productService;
     @MockitoBean
     private ProductUnitService productUnitService;
+    @MockitoBean
+    private UserManagementService userManagementService;
     @MockitoBean
     private UserService userService;
     @MockitoBean
@@ -108,41 +116,47 @@ class SecurityAuthorizationTest {
                 // Category
                 new Endpoint(HttpMethod.GET, "/category", "CATEGORY_READ", null),
                 new Endpoint(HttpMethod.GET, "/category/" + ID, "CATEGORY_READ", null),
-                new Endpoint(HttpMethod.POST, "/category", "CATEGORY_WRITE", CATEGORY_BODY),
-                new Endpoint(HttpMethod.PUT, "/category?id=" + ID, "CATEGORY_WRITE", CATEGORY_BODY),
-                new Endpoint(HttpMethod.DELETE, "/category/" + ID, "CATEGORY_WRITE", null),
-                new Endpoint(HttpMethod.PUT, "/category/" + ID + "/activate", "CATEGORY_WRITE", null),
-                new Endpoint(HttpMethod.PUT, "/category/" + ID + "/desactivate", "CATEGORY_WRITE", null),
+                new Endpoint(HttpMethod.POST, "/category", "CATEGORY_CREATE", CATEGORY_BODY),
+                new Endpoint(HttpMethod.PUT, "/category?id=" + ID, "CATEGORY_UPDATE", CATEGORY_BODY),
+                new Endpoint(HttpMethod.DELETE, "/category/" + ID, "CATEGORY_DELETE", null),
+                new Endpoint(HttpMethod.PUT, "/category/" + ID + "/activate", "CATEGORY_UPDATE", null),
+                new Endpoint(HttpMethod.PUT, "/category/" + ID + "/desactivate", "CATEGORY_UPDATE", null),
                 // Unit
                 new Endpoint(HttpMethod.GET, "/unit", "UNIT_READ", null),
                 new Endpoint(HttpMethod.GET, "/unit/" + ID, "UNIT_READ", null),
-                new Endpoint(HttpMethod.POST, "/unit", "UNIT_WRITE", UNIT_BODY),
-                new Endpoint(HttpMethod.DELETE, "/unit/" + ID, "UNIT_WRITE", null),
-                new Endpoint(HttpMethod.PUT, "/unit/" + ID + "/activate", "UNIT_WRITE", null),
-                new Endpoint(HttpMethod.PUT, "/unit/" + ID + "/desactivate", "UNIT_WRITE", null),
+                new Endpoint(HttpMethod.POST, "/unit", "UNIT_CREATE", UNIT_BODY),
+                new Endpoint(HttpMethod.DELETE, "/unit/" + ID, "UNIT_DELETE", null),
+                new Endpoint(HttpMethod.PUT, "/unit/" + ID + "/activate", "UNIT_UPDATE", null),
+                new Endpoint(HttpMethod.PUT, "/unit/" + ID + "/desactivate", "UNIT_UPDATE", null),
                 // UnitConversion
                 new Endpoint(HttpMethod.GET, "/unit-conversion", "UNIT_CONVERSION_READ", null),
                 new Endpoint(HttpMethod.GET, "/unit-conversion/" + ID, "UNIT_CONVERSION_READ", null),
-                new Endpoint(HttpMethod.POST, "/unit-conversion", "UNIT_CONVERSION_WRITE", CONVERSION_BODY),
-                new Endpoint(HttpMethod.PUT, "/unit-conversion/" + ID, "UNIT_CONVERSION_WRITE", CONVERSION_BODY),
-                new Endpoint(HttpMethod.PUT, "/unit-conversion/" + ID + "/activate", "UNIT_CONVERSION_WRITE", null),
-                new Endpoint(HttpMethod.PUT, "/unit-conversion/" + ID + "/desactivate", "UNIT_CONVERSION_WRITE", null),
+                new Endpoint(HttpMethod.POST, "/unit-conversion", "UNIT_CONVERSION_CREATE", CONVERSION_BODY),
+                new Endpoint(HttpMethod.PUT, "/unit-conversion/" + ID, "UNIT_CONVERSION_UPDATE", CONVERSION_BODY),
+                new Endpoint(HttpMethod.PUT, "/unit-conversion/" + ID + "/activate", "UNIT_CONVERSION_UPDATE", null),
+                new Endpoint(HttpMethod.PUT, "/unit-conversion/" + ID + "/desactivate", "UNIT_CONVERSION_UPDATE", null),
                 // Product
                 new Endpoint(HttpMethod.GET, "/products", "PRODUCT_READ", null),
                 new Endpoint(HttpMethod.GET, "/products/" + ID, "PRODUCT_READ", null),
-                new Endpoint(HttpMethod.POST, "/products", "PRODUCT_WRITE", PRODUCT_BODY),
-                new Endpoint(HttpMethod.PUT, "/products/" + ID, "PRODUCT_WRITE", PRODUCT_BODY),
-                new Endpoint(HttpMethod.DELETE, "/products/" + ID, "PRODUCT_WRITE", null),
-                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/activate", "PRODUCT_WRITE", null),
-                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/deactivate", "PRODUCT_WRITE", null),
+                new Endpoint(HttpMethod.POST, "/products", "PRODUCT_CREATE", PRODUCT_BODY),
+                new Endpoint(HttpMethod.PUT, "/products/" + ID, "PRODUCT_UPDATE", PRODUCT_BODY),
+                new Endpoint(HttpMethod.DELETE, "/products/" + ID, "PRODUCT_DELETE", null),
+                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/activate", "PRODUCT_UPDATE", null),
+                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/deactivate", "PRODUCT_UPDATE", null),
                 // ProductUnit (usa as permissoes PRODUCT_*)
                 new Endpoint(HttpMethod.GET, "/products/" + ID + "/units", "PRODUCT_READ", null),
                 new Endpoint(HttpMethod.GET, "/products/" + ID + "/units/" + OTHER_ID, "PRODUCT_READ", null),
-                new Endpoint(HttpMethod.POST, "/products/" + ID + "/units", "PRODUCT_WRITE", PRODUCT_UNIT_BODY),
-                new Endpoint(HttpMethod.PUT, "/products/" + ID + "/units/" + OTHER_ID, "PRODUCT_WRITE", PRODUCT_UNIT_BODY),
-                new Endpoint(HttpMethod.DELETE, "/products/" + ID + "/units/" + OTHER_ID, "PRODUCT_WRITE", null),
-                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/units/" + OTHER_ID + "/activate", "PRODUCT_WRITE", null),
-                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/units/" + OTHER_ID + "/deactivate", "PRODUCT_WRITE", null)
+                new Endpoint(HttpMethod.POST, "/products/" + ID + "/units", "PRODUCT_CREATE", PRODUCT_UNIT_BODY),
+                new Endpoint(HttpMethod.PUT, "/products/" + ID + "/units/" + OTHER_ID, "PRODUCT_UPDATE", PRODUCT_UNIT_BODY),
+                new Endpoint(HttpMethod.DELETE, "/products/" + ID + "/units/" + OTHER_ID, "PRODUCT_DELETE", null),
+                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/units/" + OTHER_ID + "/activate", "PRODUCT_UPDATE", null),
+                new Endpoint(HttpMethod.PATCH, "/products/" + ID + "/units/" + OTHER_ID + "/deactivate", "PRODUCT_UPDATE", null),
+                // User (gestao de usuarios)
+                new Endpoint(HttpMethod.GET, "/users", "USER_READ", null),
+                new Endpoint(HttpMethod.GET, "/users/" + ID, "USER_READ", null),
+                new Endpoint(HttpMethod.PUT, "/users/" + ID + "/role", "USER_UPDATE", USER_ROLE_BODY),
+                new Endpoint(HttpMethod.PATCH, "/users/" + ID + "/activate", "USER_UPDATE", null),
+                new Endpoint(HttpMethod.PATCH, "/users/" + ID + "/deactivate", "USER_UPDATE", null)
         );
     }
 
@@ -165,6 +179,18 @@ class SecurityAuthorizationTest {
                 LocalDateTime.now(), LocalDateTime.now()));
         when(productUnitService.save(any(), any())).thenReturn(new ProductUnitResponse(ID, ID, OTHER_ID,
                 "UNI-0002", "CX", BigDecimal.TEN, true, true, true));
+    }
+
+    @Test
+    @DisplayName("a lista de permissoes do teste cobre exatamente as exigidas pelos endpoints")
+    void endpointsShouldUseOnlyKnownPermissionsAndCoverAllOfThem() {
+        List<String> used = endpoints().map(Endpoint::authority).distinct().sorted().toList();
+
+        assertThat(ALL_PERMISSIONS).containsAll(used);
+        // UNIT_CONVERSION_DELETE existe como permissao, mas ainda nao ha endpoint de remocao
+        assertThat(ALL_PERMISSIONS).hasSize(18);
+        assertThat(used).containsExactlyInAnyOrderElementsOf(
+                ALL_PERMISSIONS.stream().filter(p -> !p.equals("UNIT_CONVERSION_DELETE")).toList());
     }
 
     @ParameterizedTest(name = "sem token: {0} deve retornar 401")
@@ -201,6 +227,45 @@ class SecurityAuthorizationTest {
     void userWithoutAuthoritiesShouldReturn403() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/category").with(jwt().authorities(List.of())))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("quem so le (VIEWER) nao enxerga nem altera usuarios")
+    void viewerPermissionsShouldNotGrantUserManagement() throws Exception {
+        List<GrantedAuthority> viewer = authorities(List.of(
+                "CATEGORY_READ", "UNIT_READ", "UNIT_CONVERSION_READ", "PRODUCT_READ"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/users").with(jwt().authorities(viewer)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(MockMvcRequestBuilders.patch("/users/" + ID + "/deactivate").with(jwt().authorities(viewer)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("quem tem todas as permissoes de negocio mas nao as de usuario (ANALISTA) nao gerencia usuarios")
+    void analistaPermissionsShouldNotGrantUserManagement() throws Exception {
+        List<GrantedAuthority> analista = authorities(
+                ALL_PERMISSIONS.stream().filter(p -> !p.startsWith("USER_")).toList());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/users").with(jwt().authorities(analista)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(MockMvcRequestBuilders.put("/users/" + ID + "/role")
+                        .contentType(MediaType.APPLICATION_JSON).content(USER_ROLE_BODY)
+                        .with(jwt().authorities(analista)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("quem tem todas as 18 permissoes (ADMIN) acessa todos os endpoints")
+    void allPermissionsShouldAllowEveryEndpoint() throws Exception {
+        stubServicesThatBuildTheResponseFromTheResult();
+        List<GrantedAuthority> adminAuthorities = authorities(ALL_PERMISSIONS);
+
+        for (Endpoint endpoint : endpoints().toList()) {
+            int status = mockMvc.perform(request(endpoint).with(jwt().authorities(adminAuthorities)))
+                    .andReturn().getResponse().getStatus();
+            assertThat(status).as(endpoint.toString()).isNotIn(401, 403);
+        }
     }
 
     @Test

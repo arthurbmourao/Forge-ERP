@@ -21,7 +21,7 @@ public class UnitController {
     private final UnitService service;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('UNIT_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_CREATE')")
     public ResponseEntity<UnitDtoResponse> saveUnit(@Valid @RequestBody UnitDtoRequest unitDtoRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(service.saveUnit(unitDtoRequest));
     }
@@ -39,21 +39,21 @@ public class UnitController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('UNIT_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_DELETE')")
     public ResponseEntity<Void> deleteById(@PathVariable UUID id){
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/activate")
-    @PreAuthorize("hasAuthority('UNIT_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_UPDATE')")
     public ResponseEntity<Void> setActivate(@PathVariable UUID id){
         service.turnOn(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/desactivate")
-    @PreAuthorize("hasAuthority('UNIT_WRITE')")
+    @PreAuthorize("hasAuthority('UNIT_UPDATE')")
     public ResponseEntity<Void> setDeactivate(@PathVariable UUID id){
         service.turnOff(id);
         return ResponseEntity.noContent().build();

@@ -21,7 +21,7 @@ public class CategoryController {
     private final CategoryService service;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('CATEGORY_WRITE')")
+    @PreAuthorize("hasAuthority('CATEGORY_CREATE')")
     public ResponseEntity<CategoryResponse> saveCategory (@Valid @RequestBody CategoryRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(service.saveCategory(request));
     }
@@ -39,27 +39,27 @@ public class CategoryController {
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority('CATEGORY_WRITE')")
+    @PreAuthorize("hasAuthority('CATEGORY_UPDATE')")
     public ResponseEntity<CategoryResponse> updateCategory(@RequestParam UUID id, @Valid @RequestBody CategoryRequest request){
         return ResponseEntity.status(HttpStatus.OK).body(service.update(id,request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('CATEGORY_WRITE')")
+    @PreAuthorize("hasAuthority('CATEGORY_DELETE')")
     public ResponseEntity<Void> deleteCategory(@PathVariable UUID id){
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/activate")
-    @PreAuthorize("hasAuthority('CATEGORY_WRITE')")
+    @PreAuthorize("hasAuthority('CATEGORY_UPDATE')")
     public ResponseEntity<Void> setActivate(@PathVariable UUID id){
         service.turnOn(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/desactivate")
-    @PreAuthorize("hasAuthority('CATEGORY_WRITE')")
+    @PreAuthorize("hasAuthority('CATEGORY_UPDATE')")
     public ResponseEntity<Void> setDeactivate(@PathVariable UUID id){
         service.turnOff(id);
         return ResponseEntity.noContent().build();
